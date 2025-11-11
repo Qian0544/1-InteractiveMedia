@@ -13,10 +13,6 @@ let currentStroke = null;
 let isDrawing = false;
 let isPlaying = false;
 
-// UI margins
-let bottomUIHeight = 80;
-let drawingAreaHeight;
-
 let pianoSynth;
 let violinSynth;
 let guitarSynth;
@@ -26,23 +22,13 @@ let lastPlayTime = 0;
 let timePerPoint = 20;
  // 'piano', 'violin', or 'guitar' mode
 
-// Replay button properties
-let replayButton = {
-  x: 0,
-  y: 0,
-  width: 120,
-  height: 40,
-  isHovered: false
-};
-
 const notes = ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 
                'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
                'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5', 'C6'];
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-  drawingAreaHeight = height - bottomUIHeight;
-  updateReplayButtonPosition();
+  let canvas = createCanvas(windowWidth, windowHeight);
+  canvas.parent('canvas-container');
   background(255);
   cursor(CROSS);
   strokeWeight(0.75);
@@ -91,21 +77,14 @@ function setup() {
     }
   }).toDestination();
   
-  guitarSynth.volume.value = -2;
+  guitarSynth.volume.value = -9;
   
   currentMode = 'piano';
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  drawingAreaHeight = height - bottomUIHeight;
-  updateReplayButtonPosition();
   redrawAll();
-}
-
-function updateReplayButtonPosition() {
-  replayButton.x = width / 2 - replayButton.width / 2;
-  replayButton.y = height - bottomUIHeight / 2 - replayButton.height / 2;
 }
 
 function draw() {
@@ -201,14 +180,16 @@ function draw() {
         playbackIndices = [];
         redrawAll();
         document.getElementById('status').textContent = '';
+        
+        // Update HTML button state
+        if (typeof window.updateReplayButton === 'function') {
+          window.updateReplayButton();
+        }
       }
       
       lastPlayTime = millis();
     }
   }
-  
-  // Always draw the UI area
-  drawUI();
 }
 
 function drawPoint(point) {
@@ -223,67 +204,10 @@ function drawPoint(point) {
 
 function redrawAll() {
   background(255);
-  
-  // Draw a subtle line separating drawing area from UI
-  stroke(220);
-  strokeWeight(1);
-  line(0, drawingAreaHeight, width, drawingAreaHeight);
-  
   for (let drawStroke of drawingData) {
     for (let point of drawStroke.points) {
       drawPoint(point);
     }
-  }
-}
-
-function drawUI() {
-  // Check if mouse is over button
-  replayButton.isHovered = mouseX > replayButton.x && 
-                           mouseX < replayButton.x + replayButton.width &&
-                           mouseY > replayButton.y && 
-                           mouseY < replayButton.y + replayButton.height;
-  
-  // Draw separator line
-  stroke(220);
-  strokeWeight(1);
-  line(0, drawingAreaHeight, width, drawingAreaHeight);
-  
-  // Draw replay button
-  push();
-  
-  // Button background
-  if (replayButton.isHovered && !isPlaying && drawingData.length > 0) {
-    fill(100);
-    cursor(HAND);
-  } else if (isPlaying || drawingData.length === 0) {
-    fill(200);
-    cursor(CROSS);
-  } else {
-    fill(150);
-    cursor(CROSS);
-  }
-  
-  noStroke();
-  rectMode(CORNER);
-  rect(replayButton.x, replayButton.y, replayButton.width, replayButton.height, 8);
-  
-  // Button text
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(16);
-  textStyle(BOLD);
-  
-  if (isPlaying) {
-    text('♪ Playing...', replayButton.x + replayButton.width / 2, replayButton.y + replayButton.height / 2);
-  } else {
-    text('⟲ Replay', replayButton.x + replayButton.width / 2, replayButton.y + replayButton.height / 2);
-  }
-  
-  pop();
-  
-  // Reset cursor if not over button and in drawing area
-  if (!replayButton.isHovered && mouseY < drawingAreaHeight) {
-    cursor(CROSS);
   }
 }
 
@@ -294,14 +218,7 @@ function getNoteFromPosition(x, y) {
 }
 
 function mousePressed() {
-  // Check if clicking on replay button
-  if (replayButton.isHovered && !isPlaying && drawingData.length > 0) {
-    startPlaybackAll();
-    return;
-  }
-  
-  // Only allow drawing in the drawing area
-  if (mouseY >= drawingAreaHeight || isPlaying) return;
+  if (isPlaying) return;
   
   isDrawing = true;
   lineModuleSize = random(50, 160);
@@ -321,6 +238,11 @@ function mouseReleased() {
   if (currentStroke && currentStroke.points.length > 0) {
     drawingData.push(currentStroke);
     startPlaybackAll();
+    
+    // Update HTML button state
+    if (typeof window.updateReplayButton === 'function') {
+      window.updateReplayButton();
+    }
   }
   
   currentStroke = null;
@@ -339,6 +261,11 @@ async function startPlaybackAll() {
   lastPlayTime = millis();
   
   document.getElementById('status').textContent = '♪ Playing Symphony...';
+  
+  // Update HTML button state
+  if (typeof window.updateReplayButton === 'function') {
+    window.updateReplayButton();
+  }
 }
 
 function keyReleased() {
@@ -347,6 +274,11 @@ function keyReleased() {
     drawingData = [];
     currentStroke = null;
     redrawAll();
+    
+    // Update HTML button state
+    if (typeof window.updateReplayButton === 'function') {
+      window.updateReplayButton();
+    }
   }
   
   // Piano mode with yellow color

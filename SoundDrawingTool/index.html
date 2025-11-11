@@ -9,14 +9,48 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 </head>
 <body>
-  <div id="info">
-    <div><strong>Musical Drawing - Chamber Trio</strong></div>
-    <div> Draw with mouse - music plays when you release</div>
-    <div><strong>1: Piano (Pink) | 2: Violin (Purple) | 3: Guitar (Orange)</strong></div>
-    <div><strong> Delete: Clear canvas</strong></div>
+    <div id="canvas-container"></div>
+  
     <div id="status"></div>
-  </div>
-<!--   <button id="playButton">▶ Play</button> -->
+    
+    <div id="instructions">
+      <div><strong>1</strong> - Piano (Pink)</div>
+      <div><strong>2</strong> - Violin (Purple)</div>
+      <div><strong>3</strong> - Guitar (Orange)</div>
+      <div><strong>Delete</strong> - Clear all</div>
+    </div>
+    
+    <!-- UI Overlay with pointer-events management -->
+    <div id="ui-overlay">
+      <button id="replay-btn" disabled>⟲ Replay</button>
+    </div>
+    
+    <script src="sound_drawing.js"></script>
+    
+    <script>
+      // Connect the HTML button to the p5 sketch
+      const replayBtn = document.getElementById('replay-btn');
+      
+      replayBtn.addEventListener('click', async () => {
+        if (typeof startPlaybackAll === 'function' && !isPlaying && drawingData.length > 0) {
+          await startPlaybackAll();
+        }
+      });
+          // Update button state (this will be called from the p5 sketch)
+    window.updateReplayButton = function() {
+      if (typeof drawingData !== 'undefined' && typeof isPlaying !== 'undefined') {
+        replayBtn.disabled = drawingData.length === 0 || isPlaying;
+        
+        if (isPlaying) {
+          replayBtn.classList.add('playing');
+          replayBtn.textContent = '♪ Playing...';
+        } else {
+          replayBtn.classList.remove('playing');
+          replayBtn.textContent = '⟲ Replay';
+        }
+      }
+    };
+</script>
   <script src="sketch.js"></script>
   
 </body>
