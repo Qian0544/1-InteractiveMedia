@@ -62,7 +62,7 @@ function setup() {
     }
   }).toDestination();
   
-  violinSynth.volume.value = -2;
+  violinSynth.volume.value = -9;
   
   // Initialize Nylon Guitar synth - warm and plucky
   guitarSynth = new Tone.PolySynth(Tone.Synth, {
@@ -77,7 +77,7 @@ function setup() {
     }
   }).toDestination();
   
-  guitarSynth.volume.value = -9;
+  guitarSynth.volume.value = -5;
   
   currentMode = 'piano';
 }
@@ -281,7 +281,7 @@ function keyReleased() {
     }
   }
   
-  // Piano mode with yellow color
+  // Piano mode with pink color
   if (key === '1') {
     currentMode = 'piano';
     c = color(235, 115, 221);
